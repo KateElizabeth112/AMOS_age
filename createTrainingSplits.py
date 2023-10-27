@@ -227,8 +227,10 @@ def sort():
 
 
 def main():
-    saveDatasetInfo()
-    generate_folds()
+    #saveDatasetInfo()
+    #generate_folds()
+
+    sort()
 
 
 if __name__ == "__main__":
