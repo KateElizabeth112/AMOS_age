@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -l walltime=48:00:00
 #PBS -l select=1:ncpus=18:mem=100gb:ngpus=1:gpu_type=RTX6000
-#PBS -N nnUNet_AMOS_age_601
+#PBS -N nnUNet_AMOS_age_602
 
 cd ${PBS_O_WORKDIR}
 
@@ -14,7 +14,7 @@ python -c "import torch;print(torch.cuda.is_available())"
 
 # Set environment variables
 ROOT_DIR='/rds/general/user/kc2322/home/data/AMOS_3D/'
-DATASET='Dataset601_Age1'
+DATASET='Dataset602_Age1'
 TASK=${DATASET:7:3}
 
 export nnUNet_raw=$ROOT_DIR"nnUNet_raw"
