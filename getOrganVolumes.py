@@ -10,7 +10,7 @@ from scipy import stats
 from matplotlib.patches import Polygon
 import seaborn as sns
 
-local = False
+local = True
 
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
@@ -91,7 +91,7 @@ def calculate_volumes():
             if subject in ids_g1:
                 print("Under 40")
                 volumes_g1.append(np.array(volumes))
-            elif subject in ids_g1:
+            elif subject in ids_g2:
                 print("Over 65")
                 volumes_g2.append(np.array(volumes))
             else:
