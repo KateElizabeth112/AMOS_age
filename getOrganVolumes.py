@@ -86,7 +86,7 @@ def calculate_volumes():
                 volumes.append(voxel_count * volume)
 
             # work out if the candidate is male or female
-            subject = int(f[5:9])
+            subject = f[5:9]
 
             if subject in ids_g1:
                 print("Under 40")
@@ -95,7 +95,7 @@ def calculate_volumes():
                 print("Over 65")
                 volumes_g2.append(np.array(volumes))
             else:
-                print("Can't find subject in metadata list.")
+                print("Can't find subject {} in metadata list.".format(subject))
 
     # Save the volumes ready for further processing
     f = open(volumes_dict, "wb")
