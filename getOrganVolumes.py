@@ -10,7 +10,7 @@ from scipy import stats
 from matplotlib.patches import Polygon
 import seaborn as sns
 
-local = True
+local = False
 
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
@@ -22,8 +22,10 @@ lred = "#f36860"
 
 custom_palette = [lblu, lred]
 
+input_folder = os.path.join(root_dir, "nnUNet_raw", "Dataset200_AMOS")
 gt_seg_dir = os.path.join(root_dir, "nnUNet_raw", "Dataset200_AMOS", "labelsTr")
 meta_data_path = os.path.join(root_dir, "labeled_data_meta_0000_0599.csv")
+volumes_dict = os.path.join(root_dir, "volumes_age.pkl")
 
 labels = {"background": 0,
           "spleen": 1,
@@ -45,16 +47,22 @@ labels = {"background": 0,
 
 def calculate_volumes():
     # create containers to store the volumes
-    volumes_f = []
-    volumes_m = []
+    volumes_g1 = []
+    volumes_g2 = []
 
     # get a list of the files in the gt seg folder
     f_names = os.listdir(gt_seg_dir)
 
-    # open the metadata
-    meta = pd.read_csv(meta_data_path)
-    ids_m = np.array(meta[meta["Patient's Sex"] == "M"]["amos_id"].values)
-    ids_f = np.array(meta[meta["Patient's Sex"] == "F"]["amos_id"].values)
+    f = open(os.path.join(input_folder, "info.pkl"), "rb")
+    info = pkl.load(f)
+    f.close()
+
+    patients = info["patients"]
+    age = info["age"]
+
+    # split into group 1 and group 2
+    ids_g1 = patients[age <= 40]
+    ids_g2 = patients[age >= 65]
 
     for f in f_names:
         if f.endswith(".nii.gz"):
@@ -80,24 +88,24 @@ def calculate_volumes():
             # work out if the candidate is male or female
             subject = int(f[5:9])
 
-            if subject in ids_f:
-                print("F")
-                volumes_f.append(np.array(volumes))
-            elif subject in ids_m:
-                print("M")
-                volumes_m.append(np.array(volumes))
+            if subject in ids_g1:
+                print("Under 40")
+                volumes_g1.append(np.array(volumes))
+            elif subject in ids_g1:
+                print("Over 65")
+                volumes_g2.append(np.array(volumes))
             else:
                 print("Can't find subject in metadata list.")
 
     # Save the volumes ready for further processing
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "wb")
-    pkl.dump([np.array(volumes_m), np.array(volumes_f)], f)
+    f = open(volumes_dict, "wb")
+    pkl.dump([np.array(volumes_g1), np.array(volumes_g2)], f)
     f.close()
 
 
 def plotVolumesHist():
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "rb")
-    [volumes_m, volumes_f] = pkl.load(f)
+    f = open(volumes_dict, "rb")
+    [volumes_g1, volumes_g2] = pkl.load(f)
     f.close()
 
     # For each organ, plot the volume distributions
@@ -106,30 +114,30 @@ def plotVolumesHist():
     for i in range(1, len(labels)):
         organ = organs[i]
 
-        volumes_m_i = volumes_m[:, i-1]
-        volumes_f_i = volumes_f[:, i-1]
+        volumes_g1_i = volumes_g1[:, i-1]
+        volumes_g2_i = volumes_g2[:, i-1]
 
         # First find the bins
-        v_min_m = np.min(volumes_m_i)
-        v_min_f = np.min(volumes_f_i)
-        v_min = np.min((v_min_f, v_min_m))
+        v_min_g1 = np.min(volumes_g1_i)
+        v_min_g2 = np.min(volumes_g2_i)
+        v_min = np.min((v_min_g1, v_min_g2))
 
-        v_max_m = np.max(volumes_m_i)
-        v_max_f = np.max(volumes_f_i)
-        v_max = np.max((v_max_f, v_max_m))
+        v_max_g1 = np.max(volumes_g1_i)
+        v_max_g2 = np.max(volumes_g2_i)
+        v_max = np.max((v_max_g1, v_max_g2))
 
         step = (v_max - v_min) / 20
         bins = np.arange(v_min, v_max + step, step)
 
         # Calculate averages to add to the plot
-        v_av_men = np.mean(volumes_m_i)
-        v_av_women = np.mean(volumes_f_i)
+        v_av_men = np.mean(volumes_g1_i)
+        v_av_women = np.mean(volumes_g2_i)
 
         plt.clf()
-        plt.hist(volumes_m_i, color=lblu, alpha=0.6, label="Male", bins=bins)
-        plt.axvline(x=v_av_men, color=lblu, label="Male average")
-        plt.hist(volumes_f_i, color=lred, alpha=0.6, label="Female", bins=bins)
-        plt.axvline(x=v_av_women, color=lred, label="Female average")
+        plt.hist(volumes_g1_i, color=lblu, alpha=0.6, label="Under 40", bins=bins)
+        plt.axvline(x=v_av_men, color=lblu, label=r"<=40 average")
+        plt.hist(volumes_g2_i, color=lred, alpha=0.6, label="Over 65", bins=bins)
+        plt.axvline(x=v_av_women, color=lred, label=r">=65 average")
         plt.title(organ + " volume")
         plt.xlabel("Volume in voxels")
         plt.ylabel("Frequency")
@@ -143,8 +151,8 @@ def plotVolumesBoxAndWhiskers():
     box_labels = []
     box_colors = []
 
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "rb")
-    [volumes_m, volumes_f] = pkl.load(f)
+    f = open(volumes_dict, "rb")
+    [volumes_g1, volumes_g2] = pkl.load(f)
     f.close()
 
     # For each organ, plot the volume distributions
@@ -153,16 +161,16 @@ def plotVolumesBoxAndWhiskers():
     for i in range(1, len(labels)):
         organ = organs[i]
 
-        volumes_m_i = volumes_m[:, i-1]
-        volumes_f_i = volumes_f[:, i-1]
+        volumes_g1_i = volumes_g1[:, i-1]
+        volumes_g2_i = volumes_g2[:, i-1]
 
         # Get overall maximum
-        volumes_f_max = np.max(volumes_f_i)
-        volumes_m_max = np.max(volumes_m_i)
-        v_max = np.max((volumes_m_max, volumes_f_max))
+        volumes_g1_max = np.max(volumes_g1_i)
+        volumes_g2_max = np.max(volumes_g2_i)
+        v_max = np.max((volumes_g1_max, volumes_g2_max))
 
-        data.append((volumes_m_i / v_max))
-        data.append((volumes_f_i / v_max))
+        data.append((volumes_g1_i / v_max))
+        data.append((volumes_g2_i / v_max))
 
         box_labels.append(organ)
         box_labels.append(organ)
@@ -240,8 +248,8 @@ def plotVolumesBoxAndWhiskers():
 
 def boxPlotSeaborn():
     # First create a dataframe from our results
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "rb")
-    [volumes_m, volumes_f] = pkl.load(f)
+    f = open(volumes_dict, "rb")
+    [volumes_g1, volumes_g2] = pkl.load(f)
     f.close()
 
     organs = list(labels.keys())
@@ -253,25 +261,25 @@ def boxPlotSeaborn():
     for i in range(1, len(labels)-1):
         organ = organs[i]
 
-        volumes_m_i = volumes_m[:, i-1]
-        volumes_f_i = volumes_f[:, i-1]
+        volumes_g1_i = volumes_g1[:, i-1]
+        volumes_g2_i = volumes_g2[:, i-1]
 
         # Get overall maximum
-        volumes_f_max = np.max(volumes_f_i)
-        volumes_m_max = np.max(volumes_m_i)
-        v_max = np.max((volumes_m_max, volumes_f_max))
+        volumes_g1_max = np.max(volumes_g1_i)
+        volumes_g2_max = np.max(volumes_g2_i)
+        v_max = np.max((volumes_g1_max, volumes_g2_max))
 
-        volumes_m_i_norm = (volumes_m_i / v_max)
-        volumes_f_i_norm = (volumes_f_i / v_max)
+        volumes_g1_i_norm = (volumes_g1_i / v_max)
+        volumes_g2_i_norm = (volumes_g2_i / v_max)
 
-        organ_name += [organ for _ in range(volumes_m_i.shape[0])]
-        organ_name += [organ for _ in range(volumes_f_i.shape[0])]
+        organ_name += [organ for _ in range(volumes_g1_i.shape[0])]
+        organ_name += [organ for _ in range(volumes_g2_i.shape[0])]
 
-        gender += ["M" for _ in range(volumes_m_i.shape[0])]
-        gender += ["F" for _ in range(volumes_f_i.shape[0])]
+        gender += ["M" for _ in range(volumes_g1_i.shape[0])]
+        gender += ["F" for _ in range(volumes_g2_i.shape[0])]
 
-        normalised_volume += list(volumes_m_i_norm)
-        normalised_volume += list(volumes_f_i_norm)
+        normalised_volume += list(volumes_g1_i_norm)
+        normalised_volume += list(volumes_g2_i_norm)
 
     # Now build the data frame
     df = pd.DataFrame({'Normalised Volume': normalised_volume,
@@ -286,8 +294,8 @@ def boxPlotSeaborn():
 
 def significanceTesting():
     # perform Welch's t-test on the sample means
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "rb")
-    [volumes_m, volumes_f] = pkl.load(f)
+    f = open(volumes_dict, "rb")
+    [volumes_g1, volumes_g2] = pkl.load(f)
     f.close()
 
     # For each organ, plot the volume distributions
@@ -297,15 +305,15 @@ def significanceTesting():
         organ = organs[i]
 
         # Calculate averages
-        v_av_men = np.mean(volumes_m[:, i-1])
-        v_av_women = np.mean(volumes_f[:, i-1])
+        v_av_g1 = np.mean(volumes_g1[:, i-1])
+        v_av_g2 = np.mean(volumes_g2[:, i-1])
 
         # difference in average (mm3)
-        v_diff = v_av_men - v_av_women
-        v_diff_prop = (v_diff / np.mean((v_av_women, v_av_men))) * 100
+        v_diff = v_av_g1 - v_av_g2
+        v_diff_prop = (v_diff / np.mean((v_av_g1, v_av_g2))) * 100
 
         # perform t-test
-        res = stats.ttest_ind(volumes_m[:, i-1], volumes_f[:, i-1], equal_var=False)
+        res = stats.ttest_ind(volumes_g1[:, i-1], volumes_g2[:, i-1], equal_var=False)
 
         # save difference in mean, difference in mean as a proportion of the average volume, and p-value
         if res[1] < 0.01:
@@ -319,18 +327,18 @@ def significanceTesting():
 
 
 def plotOrganVolumeDistribution():
-    f = open(os.path.join(root_dir, "volumes_gender.pkl"), "rb")
-    [volumes_m, volumes_f] = pkl.load(f)
+    f = open(volumes_dict, "rb")
+    [volumes_g1, volumes_g2] = pkl.load(f)
     f.close()
 
-    volumes = np.vstack((volumes_m, volumes_f))
+    volumes = np.vstack((volumes_g1, volumes_g2))
 
     # For each organ, plot the volume distributions. Ignore background
     organs = list(labels.keys())
 
     for i in range(1, len(labels)):
         organ = organs[i]
-        volumes_i = volumes_m[:, i-1]
+        volumes_i = volumes[:, i-1]
 
         # calculate median
         med = np.median(volumes_i) / 1000
@@ -341,11 +349,11 @@ def plotOrganVolumeDistribution():
 
 
 def main():
-    #calculate_volumes()
+    calculate_volumes()
     #plotVolumesBoxAndWhiskers()
     #boxPlotSeaborn()
     #significanceTesting()
-    plotOrganVolumeDistribution()
+    #plotOrganVolumeDistribution()
 
 
 
