@@ -16,7 +16,7 @@ parser.add_argument("-l", "--local", default=1, help="Task to evaluate")
 args = vars(parser.parse_args())
 
 # set up variables
-local = args["local"]
+local = False
 
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
