@@ -9,4 +9,4 @@ cd ${PBS_O_WORKDIR}
 module load anaconda3/personal
 source activate nnUNetv2
 
-python3 getOrganVolumes.py
+python3 getOrganVolumes.py -l 0
