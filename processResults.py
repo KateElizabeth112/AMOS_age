@@ -107,7 +107,7 @@ def multiChannelDice(pred, gt, channels):
 
 def calculateMetrics():
     # get a list of male and female IDs
-    f = open(os.path.join(root_dir, "nnUNet_raw/Dataset200_AMOS", "info.pkl"), "rb")
+    f = open(os.path.join(root_dir, "info.pkl"), "rb")
     info = pkl.load(f)
     f.close()
 
