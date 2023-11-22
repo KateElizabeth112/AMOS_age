@@ -10,7 +10,7 @@ local = False
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
 else:
-    root_dir = "/vol/biomedic3/kc2322/data/AMOS_3D/"
+    root_dir = "/rds/general/user/kc2322/home/data/AMOS_3D"
 
 input_folder = os.path.join(root_dir, "nnUNet_raw/Dataset200_AMOS")
 splits_folder = os.path.join(root_dir, "splits")
