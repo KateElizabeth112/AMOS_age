@@ -118,7 +118,7 @@ def calculateMetrics():
     # containers to store results
     case_id = []
     sex = []
-    dice = []
+    dice_scores = []
     age = []
     hausdorff = []
     vol_pred = []
@@ -145,7 +145,7 @@ def calculateMetrics():
                 case_id.append(id)
                 sex.append(genders[cases == id])
                 age.append(ages[case == id])
-                dice.append(dice)
+                dice_scores.append(dice)
                 hausdorff.append(hd)
                 vol_pred.append(vol_pred)
                 vol_gt.append(vol_gt)
@@ -154,7 +154,7 @@ def calculateMetrics():
 
     # convert to numpy arrays (except for HD distance)
     case_id = np.array(case_id)
-    dice = np.array(dice)
+    dice_scores = np.array(dice_scores)
     sex = np.array(sex)
     age = np.array(age)
     vol_pred = np.array(vol_pred)
@@ -167,7 +167,7 @@ def calculateMetrics():
     pkl.dump({"case_id": case_id,
               "sex": sex,
               "age": age,
-              "dice": dice,
+              "dice": dice_scores,
               "hd": hausdorff,
               "vol_pred": vol_pred,
               "vol_gt": vol_gt,
