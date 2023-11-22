@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import pickle as pkl
 
 local = True
 
@@ -15,7 +16,37 @@ input_folder = os.path.join(root_dir, "nnUNet_raw/Dataset200_AMOS")
 splits_folder = os.path.join(root_dir, "splits")
 meta_data_path = os.path.join(root_dir, "labeled_data_meta_0000_0599.csv")
 
-def main():
+
+def createDatasetInfo():
+    df = pd.read_csv(meta_data_path)
+
+    ids = df["amos_id"].values
+    sex_mf = df["Patient's Sex"].values
+    age_str = df["Patient's Age"].values
+    age = []
+
+    # reformat age as integers
+    for a in list(age_str):
+        if type(a) == float and np.isnan(a):
+            age.append(np.nan)
+        else:
+            age.append(int(a[1:3]))
+
+    # change sex to a binary value (0=M, 1=F)
+    sex = np.zeros(sex_mf.shape)
+    sex[sex_mf == "F"] = 1
+
+    info = {"id": ids,
+            "age": age,
+            "sex": sex}
+
+
+    f = open(os.path.join(root_dir, "info.pkl"), "wb")
+    pkl.dump(info, f)
+    f.close()
+
+
+def plot():
     df = pd.read_csv(meta_data_path)
 
     ids = df["amos_id"].values
@@ -50,6 +81,9 @@ def main():
     plt.legend()
     plt.show()
 
+
+def main():
+    createDatasetInfo()
 
 
 if __name__ == "__main__":

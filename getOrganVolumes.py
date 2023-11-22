@@ -16,7 +16,7 @@ parser.add_argument("-l", "--local", default=1, help="Task to evaluate")
 args = vars(parser.parse_args())
 
 # set up variables
-local = False
+local = True
 
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
@@ -328,7 +328,7 @@ def significanceTesting():
             sig = "*"
         else:
             sig = ""
-        print("{0} & {1:.0f} {2} & {3:.2f} {4} ".format(organ, v_diff, sig, v_diff_prop, sig) + r"\\")
+        print("{0} & {1:.0f} {2} & {3:.1f} {4} ".format(organ, v_diff, sig, v_diff_prop, sig) + r"\\")
 
 
 
@@ -355,10 +355,10 @@ def plotOrganVolumeDistribution():
 
 
 def main():
-    calculate_volumes()
+    #calculate_volumes()
     #plotVolumesBoxAndWhiskers()
     #boxPlotSeaborn()
-    #significanceTesting()
+    significanceTesting()
     #plotOrganVolumeDistribution()
 
 

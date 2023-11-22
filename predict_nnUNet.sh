@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -l walltime=15:00:00
 #PBS -l select=1:ncpus=15:mem=120gb:ngpus=1:gpu_type=RTX6000
-#PBS -N nnUNet_AMOS_predict_900
+#PBS -N nnUNet_AMOS_predict_500
 
 cd ${PBS_O_WORKDIR}
 
@@ -15,7 +15,7 @@ python -c "import torch;print(torch.cuda.is_available())"
 # Set environment variables
 ROOT_DIR='/rds/general/user/kc2322/home/data/AMOS_3D/'
 
-datasets=("Dataset900_Age4" "Dataset901_Age4" "Dataset902_Age4")
+datasets=("Dataset500_Age0" "Dataset501_Age0" "Dataset502_Age0")
 
 export nnUNet_raw=$ROOT_DIR"nnUNet_raw"
 export nnUNet_preprocessed=$ROOT_DIR"nnUNet_preprocessed"
@@ -34,7 +34,7 @@ for number in {0..2}; do
     echo $INPUT_FOLDER
     echo $OUTPUT_FOLDER
 
-    nnUNetv2_predict -i $INPUT_FOLDER -o $OUTPUT_FOLDER -d $TASK -c 3d_fullres -f all -chk checkpoint_best.pth
+    #nnUNetv2_predict -i $INPUT_FOLDER -o $OUTPUT_FOLDER -d $TASK -c 3d_fullres -f all -chk checkpoint_best.pth
 
     # Run python script to evaluate results
     python3 processResults.py -d $DATASET

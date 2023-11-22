@@ -111,29 +111,24 @@ def calculateMetrics():
     info = pkl.load(f)
     f.close()
 
-    ids = info["patients"]
-    genders = info["genders"]
-    age = info["age"]
+    patients = np.array(info["id"])
+    genders = np.array(info["gender"])  # male = 0, female = 1
+    ages = np.array(info["age"])
 
-    ids_g1 = ids[age <= 40]
-    ids_g2 = ids[age >= 65]
-
-    dice_g1 = []
-    dice_g2 = []
-
-    hd_g1 = []
-    hd_g2 = []
-
-    vol_pred_g1 = []
-    vol_pred_g2 = []
-
-    vol_gt_g1 = []
-    vol_gt_g2 = []
+    # containers to store results
+    case_id = []
+    sex = []
+    dice = []
+    age = []
+    hausdorff = []
+    vol_pred = []
+    vol_gt = []
 
     cases = os.listdir(preds_dir)
     for case in cases:
         if case.endswith(".nii.gz"):
-            print(case)
+            id = case[5:9]
+            print("Processing {}".format(id))
 
             pred = nib.load(os.path.join(preds_dir, case)).get_fdata()
             gt = nib.load(os.path.join(gt_dir, case)).get_fdata()
@@ -143,53 +138,46 @@ def calculateMetrics():
 
             # Get Dice and NSD and volumes
             dice = multiChannelDice(pred, gt, n_channels)
-
             hd = computeHDDIstance(pred, gt)
-
             vol_pred, vol_gt = getVolume(pred, gt)
 
-            if case[5:9] in ids_g1:
-                dice_g1.append(dice)
-                hd_g1.append(hd)
-                vol_pred_g1.append(vol_pred)
-                vol_gt_g1.append(vol_gt)
-            elif case[5:9] in ids_g2:
-                dice_g2.append(dice)
-                hd_g2.append(hd)
-                vol_pred_g2.append(vol_pred)
-                vol_gt_g2.append(vol_gt)
+            if id in patients:
+                case_id.append(id)
+                sex.append(genders[cases == id])
+                age.append(ages[case == id])
+                dice.append(dice)
+                hausdorff.append(hd)
+                vol_pred.append(vol_pred)
+                vol_gt.append(vol_gt)
             else:
                 print("Not in list")
 
-    print("Number of  under 40: {}".format(len(dice_g1)))
-    print("Number of over 65: {}".format(len(dice_g2)))
+    # convert to numpy arrays (except for HD distance)
+    case_id = np.array(case_id)
+    dice = np.array(dice)
+    sex = np.array(sex)
+    age = np.array(age)
+    vol_pred = np.array(vol_pred)
+    vol_gt = np.array(vol_gt)
 
-    dice_g1 = np.array(dice_g1)
-    dice_women = np.array(dice_g2)
+    print("Number of men: {}".format(sex.shape[0] - np.sum(sex)))
+    print("Number of women: {}".format(np.sum(sex)))
 
-    # hd_g1 = np.array(hd_g1)
-    # hd_g2 = np.array(hd_g2)
-
-    vol_pred_g1 = np.array(vol_pred_g1)
-    vol_pred_g2 = np.array(vol_pred_g2)
-
-    vol_gt_g1 = np.array(vol_gt_g1)
-    vol_gt_g2 = np.array(vol_gt_g2)
-
-    f = open(os.path.join(preds_dir, "dice_and_hd.pkl"), "wb")
-    pkl.dump({"dice_g1": dice_g1,
-              "dice_g2": dice_g2,
-              "hd_g1": hd_g1,
-              "hd_g2": hd_g2,
-              "vol_pred_g1": vol_pred_g1,
-              "vol_pred_g2": vol_pred_g2,
-              "vol_gt_g1": vol_gt_g1,
-              "vol_gt_g1": vol_gt_g2}, f)
+    f = open(os.path.join(preds_dir, "results.pkl"), "wb")
+    pkl.dump({"case_id": case_id,
+              "sex": sex,
+              "age": age,
+              "dice": dice,
+              "hd": hausdorff,
+              "vol_pred": vol_pred,
+              "vol_gt": vol_gt,
+              }, f)
     f.close()
 
 
 def main():
     calculateMetrics()
+
 
 
 
