@@ -112,7 +112,7 @@ def calculateMetrics():
     f.close()
 
     patients = np.array(info["id"])
-    genders = np.array(info["gender"])  # male = 0, female = 1
+    genders = np.array(info["sex"])  # male = 0, female = 1
     ages = np.array(info["age"])
 
     # containers to store results

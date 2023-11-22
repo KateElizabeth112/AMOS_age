@@ -24,6 +24,7 @@ def createDatasetInfo():
     sex_mf = df["Patient's Sex"].values
     age_str = df["Patient's Age"].values
     age = []
+    ids_str = []
 
     # reformat age as integers
     for a in list(age_str):
@@ -36,9 +37,19 @@ def createDatasetInfo():
     sex = np.zeros(sex_mf.shape)
     sex[sex_mf == "F"] = 1
 
-    info = {"id": ids,
-            "age": age,
-            "sex": sex}
+    # reformat ids as strings
+    for id in list(ids):
+        id_str = str(id)
+        if len(id_str) == 1:
+            ids_str.append("000" + id_str)
+        elif len(id_str) == 2:
+            ids_str.append("00" + id_str)
+        elif len(id_str) == 3:
+            ids_str.append("0" + id_str)
+
+    info = {"id": np.array(ids_str),
+            "age": np.array(age),
+            "sex": np.array(sex)}
 
 
     f = open(os.path.join(root_dir, "info.pkl"), "wb")
