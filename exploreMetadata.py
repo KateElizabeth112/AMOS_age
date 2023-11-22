@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import pickle as pkl
 
-local = True
+local = False
 
 if local:
     root_dir = "/Users/katecevora/Documents/PhD/data/AMOS_3D"
