@@ -121,8 +121,8 @@ def calculateMetrics():
     dice_scores = []
     age = []
     hausdorff = []
-    vol_pred = []
-    vol_gt = []
+    vol_preds = []
+    vol_gts = []
 
     cases = os.listdir(preds_dir)
     for case in cases:
@@ -147,8 +147,8 @@ def calculateMetrics():
                 age.append(ages[case == id])
                 dice_scores.append(dice)
                 hausdorff.append(hd)
-                vol_pred.append(vol_pred)
-                vol_gt.append(vol_gt)
+                vol_preds.append(vol_pred)
+                vol_gts.append(vol_gt)
             else:
                 print("Not in list")
 
@@ -157,8 +157,8 @@ def calculateMetrics():
     dice_scores = np.array(dice_scores)
     sex = np.array(sex)
     age = np.array(age)
-    vol_pred = np.array(vol_pred)
-    vol_gt = np.array(vol_gt)
+    vol_preds = np.array(vol_preds)
+    vol_gts = np.array(vol_gts)
 
     print("Number of men: {}".format(sex.shape[0] - np.sum(sex)))
     print("Number of women: {}".format(np.sum(sex)))
@@ -169,8 +169,8 @@ def calculateMetrics():
               "age": age,
               "dice": dice_scores,
               "hd": hausdorff,
-              "vol_pred": vol_pred,
-              "vol_gt": vol_gt,
+              "vol_pred": vol_preds,
+              "vol_gt": vol_gts,
               }, f)
     f.close()
 
