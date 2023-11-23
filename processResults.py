@@ -146,7 +146,7 @@ def calculateMetrics():
                 sex.append(genders[cases == id])
                 age.append(ages[case == id])
                 dice_scores.append(dice)
-                hausdorff.append(hd)
+                hausdorff.append(hd.numpy().squeeze())
                 vol_preds.append(vol_pred)
                 vol_gts.append(vol_gt)
             else:
@@ -155,6 +155,7 @@ def calculateMetrics():
     # convert to numpy arrays (except for HD distance)
     case_id = np.array(case_id)
     dice_scores = np.array(dice_scores)
+    hausdorff = np.array(hausdorff)
     sex = np.array(sex)
     age = np.array(age)
     vol_preds = np.array(vol_preds)

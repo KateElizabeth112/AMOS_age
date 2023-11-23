@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l walltime=5:00:00
-#PBS -l select=1:ncpus=8:mem=32gb
+#PBS -l walltime=10:00:00
+#PBS -l select=1:ncpus=12:mem=40gb
 #PBS -N nnUNet_AMOS_predict_500
 
 cd ${PBS_O_WORKDIR}
