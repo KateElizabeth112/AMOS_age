@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -l walltime=10:00:00
 #PBS -l select=1:ncpus=12:mem=40gb
-#PBS -N predict_800
+#PBS -N predict_900
 
 cd ${PBS_O_WORKDIR}
 
@@ -15,7 +15,7 @@ python -c "import torch;print(torch.cuda.is_available())"
 # Set environment variables
 ROOT_DIR='/rds/general/user/kc2322/home/data/AMOS_3D/'
 
-datasets=("Dataset800_Age3" "Dataset801_Age3" "Dataset802_Age3")
+datasets=("Dataset900_Age4" "Dataset901_Age4" "Dataset902_Age4")
 
 export nnUNet_raw=$ROOT_DIR"nnUNet_raw"
 export nnUNet_preprocessed=$ROOT_DIR"nnUNet_preprocessed"
