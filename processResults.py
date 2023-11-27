@@ -111,9 +111,9 @@ def calculateMetrics():
     info = pkl.load(f)
     f.close()
 
-    patients = np.array(info["id"])
-    genders = np.array(info["sex"])  # male = 0, female = 1
-    ages = np.array(info["age"])
+    ids_all = info["id"]
+    sex_all = info["sex"]  # male = 0, female = 1
+    age_all = info["age"]
 
     # containers to store results
     case_id = []
@@ -124,8 +124,9 @@ def calculateMetrics():
     vol_preds = []
     vol_gts = []
 
-    cases = os.listdir(preds_dir)
-    for case in cases:
+    ids_pred = os.listdir(preds_dir)
+
+    for case in ids_pred:
         if case.endswith(".nii.gz"):
             id = case[5:9]
             print("Processing {}".format(id))
@@ -141,10 +142,10 @@ def calculateMetrics():
             hd = computeHDDIstance(pred, gt)
             vol_pred, vol_gt = getVolume(pred, gt)
 
-            if id in patients:
+            if id in ids_all:
                 case_id.append(id)
-                sex.append(genders[cases == id])
-                age.append(ages[case == id])
+                sex.append(sex_all[ids_all == id])
+                age.append(age_all[ids_all == id])
                 dice_scores.append(dice)
                 hausdorff.append(hd.numpy().squeeze())
                 vol_preds.append(vol_pred)
