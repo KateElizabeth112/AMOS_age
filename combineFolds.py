@@ -30,6 +30,8 @@ def main():
             results = pkl.load(f)
             f.close()
 
+            print(np.array(results["dice"]).shape)
+
             case_id_all.append(list(results["case_id"]))
             sex_all.append(list(results["sex"]))
             age_all.append(list(results["age"]))
