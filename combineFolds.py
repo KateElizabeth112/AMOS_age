@@ -40,6 +40,8 @@ def main():
             vol_pred_all.append(list(results["vol_pred"]))
             vol_gt_all.append(list(results["vol_gt"]))
 
+        print(np.array(dice_all).shape)
+
         f = open(os.path.join(root_dir, "inference", "results_age_{}.pkl".format(ex)), 'wb')
         pkl.dump({"case_id": np.array(case_id_all),
                   "sex": np.array(sex_all),
