@@ -138,7 +138,10 @@ def calculateMetrics():
             # get the volume of 1 voxel in mm3
             sx, sy, sz = gt_nii.header.get_zooms()
             vox_vol = sx * sy * sz
-            vox_spacing = np.ndarray([sx, sy, sz])
+            vox_spacing = np.array([sx, sy, sz])
+
+            print(vox_spacing)
+            vox_spacing.astype('int')
 
             pred = pred_nii.get_fdata()
             gt = gt_nii.get_fdata()
