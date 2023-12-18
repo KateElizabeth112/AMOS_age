@@ -58,12 +58,10 @@ def getVolume(pred, gt):
 
 
 def oneHotEncode(array):
-    array_dims = len(array.shape)
-    array_max = 15
-    one_hot = np.zeros((array_max + 1, array.shape[0], array.shape[1], array.shape[2]))
+    one_hot = np.zeros((n_channels, array.shape[0], array.shape[1], array.shape[2]))
 
-    for i in range(0, array_max + 1):
-        one_hot[i, :, :, :][array==i] = 1
+    for i in range(0, n_channels):
+        one_hot[i, :, :, :][array == i] = 1
 
     return one_hot
 
@@ -79,9 +77,12 @@ def computeHDDIstance(pred, gt):
     pred_one_hot = oneHotEncode(pred)
     gt_one_hot = oneHotEncode(gt)
 
-    # expand the number of dimensions to include batch
+    # expand the number of dimensions to include batch as the first dimension (this is required by the MONAI function)
     pred_one_hot = np.expand_dims(pred_one_hot, axis=0)
     gt_one_hot = np.expand_dims(gt_one_hot, axis=0)
+
+    # DEBUG: check dimensions. we should have 5
+    print("Pred before HD: {}".format(pred_one_hot.shape))
 
     hd = compute_hausdorff_distance(pred_one_hot, gt_one_hot, include_background=False, distance_metric='euclidean', percentile=None,
                                directed=False, spacing=None)
@@ -140,6 +141,11 @@ def calculateMetrics():
             # Get Dice and NSD and volumes
             dice = multiChannelDice(pred, gt, n_channels)
             hd = computeHDDIstance(pred, gt)
+
+            # DEBUG: shape of HD values
+            print("Shape of HD array: {}".format(hd.numpy.shape))
+            print("Shape of Dice array: {}".format(dice.shape))
+
             vol_pred, vol_gt = getVolume(pred, gt)
 
             if id in ids_all:
