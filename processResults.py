@@ -46,13 +46,13 @@ labels = {"background": 0,
 n_channels = int(len(labels))
 
 
-def getVolume(pred, gt):
+def getVolume(pred, gt, vox_vol):
     # Get the organ volumes given the ground truth mask and the validation mask
     vol_preds = []
     vol_gts = []
     for channel in range(n_channels):
-        vol_preds.append(np.sum(pred[pred == channel]))
-        vol_gts.append(np.sum(gt[gt == channel]))
+        vol_preds.append(np.sum(pred[pred == channel]) * vox_vol)
+        vol_gts.append(np.sum(gt[gt == channel]) * vox_vol)
 
     return np.array(vol_preds), np.array(vol_gts)
 
@@ -66,7 +66,7 @@ def oneHotEncode(array):
     return one_hot
 
 
-def computeHDDIstance(pred, gt):
+def computeHDDIstance(pred, gt, vox_spacing):
     # To use the MONAI function pred must be one-hot format and first dim is batch, example shape: [16, 3, 32, 32].
     # The values should be binarized.
     # gt: ground truth to compute mean the distance. It must be one-hot format and first dim is batch.
@@ -85,7 +85,7 @@ def computeHDDIstance(pred, gt):
     print("Pred before HD: {}".format(pred_one_hot.shape))
 
     hd = compute_hausdorff_distance(pred_one_hot, gt_one_hot, include_background=False, distance_metric='euclidean', percentile=None,
-                               directed=False, spacing=None)
+                               directed=False, spacing=vox_spacing)
 
     return hd
 
@@ -132,21 +132,29 @@ def calculateMetrics():
             id = case[5:9]
             print("Processing {}".format(id))
 
-            pred = nib.load(os.path.join(preds_dir, case)).get_fdata()
-            gt = nib.load(os.path.join(gt_dir, case)).get_fdata()
+            pred_nii = nib.load(os.path.join(preds_dir, case))
+            gt_nii = nib.load(os.path.join(gt_dir, case))
+
+            # get the volume of 1 voxel in mm3
+            sx, sy, sz = gt_nii.header.get_zooms()
+            vox_vol = sx * sy * sz
+            vox_spacing = [sx, sy, sz]
+
+            pred = pred_nii.get_fdata()
+            gt = gt_nii.get_fdata()
 
             if np.unique(gt).sum() == 0:
                 print("Only background")
 
             # Get Dice and NSD and volumes
             dice = multiChannelDice(pred, gt, n_channels)
-            hd = computeHDDIstance(pred, gt)
+            hd = computeHDDIstance(pred, gt, vox_spacing)
 
             # DEBUG: shape of HD values
-            print("Shape of HD array: {}".format(hd.numpy.shape))
+            print("Shape of HD array: {}".format(hd.numpy().shape))
             print("Shape of Dice array: {}".format(dice.shape))
 
-            vol_pred, vol_gt = getVolume(pred, gt)
+            vol_pred, vol_gt = getVolume(pred, gt, vox_vol)
 
             if id in ids_all:
                 case_id.append(id)
