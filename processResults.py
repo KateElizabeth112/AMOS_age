@@ -141,7 +141,8 @@ def calculateMetrics():
             vox_spacing = np.array([sx, sy, sz])
 
             print(vox_spacing)
-            vox_spacing.astype('int')
+            print(type(vox_spacing))
+            vox_spacing = vox_spacing.astype('float')
 
             pred = pred_nii.get_fdata()
             gt = gt_nii.get_fdata()
