@@ -23,6 +23,8 @@ def createDatasetInfo():
     ids = df["amos_id"].values
     sex_mf = df["Patient's Sex"].values
     age_str = df["Patient's Age"].values
+    scanner = df["Manufacturer's Model Name"].values
+    site = df["Site"].values
     age = []
     ids_str = []
 
@@ -49,7 +51,9 @@ def createDatasetInfo():
 
     info = {"id": np.array(ids_str),
             "age": np.array(age),
-            "sex": np.array(sex)}
+            "sex": np.array(sex),
+            "scanner": scanner,
+            "site": site}
 
 
     f = open(os.path.join(root_dir, "info.pkl"), "wb")

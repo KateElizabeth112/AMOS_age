@@ -87,7 +87,10 @@ def computeHDDIstance(pred, gt, vox_spacing):
     hd = compute_hausdorff_distance(pred_one_hot, gt_one_hot, include_background=False, distance_metric='euclidean', percentile=None,
                                directed=False, spacing=vox_spacing)
 
-    return hd
+    hd95 = compute_hausdorff_distance(pred_one_hot, gt_one_hot, include_background=False, distance_metric='euclidean', percentile=95.0,
+                               directed=False, spacing=vox_spacing)
+
+    return hd, hd95
 
 
 def multiChannelDice(pred, gt, channels):
@@ -122,6 +125,7 @@ def calculateMetrics():
     dice_scores = []
     age = []
     hausdorff = []
+    hausdorff95 = []
     vol_preds = []
     vol_gts = []
 
@@ -140,9 +144,9 @@ def calculateMetrics():
             vox_vol = sx * sy * sz
             vox_spacing = np.array([sx, sy, sz])
 
-            print(vox_spacing)
-            print(type(vox_spacing))
-            vox_spacing = vox_spacing.astype('float')
+            #print(vox_spacing)
+            #print(type(vox_spacing))
+            #vox_spacing = vox_spacing.astype('float')
 
             pred = pred_nii.get_fdata()
             gt = gt_nii.get_fdata()
@@ -152,7 +156,7 @@ def calculateMetrics():
 
             # Get Dice and NSD and volumes
             dice = multiChannelDice(pred, gt, n_channels)
-            hd = computeHDDIstance(pred, gt, vox_spacing)
+            hd, hd95 = computeHDDIstance(pred, gt, vox_spacing)
 
             # DEBUG: shape of HD values
             print("Shape of HD array: {}".format(hd.numpy().shape))
@@ -166,15 +170,17 @@ def calculateMetrics():
                 age.append(age_all[ids_all == id])
                 dice_scores.append(dice)
                 hausdorff.append(hd.numpy().squeeze())
+                hausdorff95.append(hd95.numpy().squeeze())
                 vol_preds.append(vol_pred)
                 vol_gts.append(vol_gt)
             else:
                 print("Not in list")
 
-    # convert to numpy arrays (except for HD distance)
+    # convert to numpy arrays
     case_id = np.array(case_id)
     dice_scores = np.array(dice_scores)
     hausdorff = np.array(hausdorff)
+    hausdorff95 = np.array(hausdorff95)
     sex = np.array(sex)
     age = np.array(age)
     vol_preds = np.array(vol_preds)
@@ -189,6 +195,7 @@ def calculateMetrics():
               "age": age,
               "dice": dice_scores,
               "hd": hausdorff,
+              "hd95": hausdorff95,
               "vol_pred": vol_preds,
               "vol_gt": vol_gts,
               }, f)
